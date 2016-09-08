@@ -1,8 +1,9 @@
+// @jasminko
+
 #include <fstream>
 #include <iostream>
 
 #include <GL/glew.h>
-// @jasminko
 
 #include <GL/freeglut.h>
 
@@ -11,13 +12,13 @@
 
 #define VERTEX_SOURCE "vertex.glsl"
 #define FRAGMENT_SOURCE "fragment.glsl"
-#define NOISE_SOURCE "noise3D.glsl"
+#define NOISE_SOURCE "noise3D.glsl" // The noise function called from the fragent shader
 #define TEXTURE_FILE "../assets/fire_profile.png"
 
 #define WINDOW_SIZE 512
 
-Shader* planetShader = nullptr;
-GLuint texture = 0;
+Shader* planetShader = nullptr; // The shader program used to draw the planet
+GLuint texture = 0; // The fire texture handle
 
 std::string loadFile(std::string filename)
 {
@@ -29,6 +30,7 @@ std::string loadFile(std::string filename)
 		return "";
 	}
 
+	// Populates a std::string with the file contents
 	std::string content ((std::istreambuf_iterator<char>(file)),
 		(std::istreambuf_iterator<char>()));
 
@@ -49,13 +51,16 @@ GLuint loadTexture(std::string filename)
 	glGenTextures(1, &textureHandle);
 
 	glBindTexture(GL_TEXTURE_2D, textureHandle);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, // Populates texture in video memory
 		GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)&image[0]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // Set samling filters to smooth
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	glGenerateMipmap(GL_TEXTURE_2D); // Generates all higher mipmap levels
 
+	// OpenGL error check for debug build
+#ifdef _DEBUG
 	GLenum err = glGetError();
+#endif
 
 	return textureHandle;
 }
@@ -68,19 +73,16 @@ bool init()
 	std::string noiseSource = loadFile(NOISE_SOURCE); // Contains the noise function used in the fragment shader
 
 	// Compile and link shader
-	planetShader = new Shader(vertexSource, fragmentSource + noiseSource);
+	planetShader = new Shader(vertexSource, fragmentSource + noiseSource); // Appends noise function
 	planetShader->initialize();
 
 	if (!planetShader->issuccessfullyLinked())
 	{
 		std::cerr << "Shader was not sucessfully compiled and linked" << std::endl;
-		std::cerr << "Log:\n" + planetShader->getErrorLog() << std::endl;
+		std::cerr << "Log:" << std::endl << planetShader->getErrorLog() << std::endl;
 
 		return false;
 	}
-
-	// This will be the only shader program in use, so we can activate it during init
-	glUseProgram(planetShader->getHandle());
 
 	// Load texture
 	texture = loadTexture(TEXTURE_FILE);
@@ -95,15 +97,15 @@ void resize(int width, int height) {
 
 // display callback
 void display() {
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0, 0, 0, 0); // Black
+	glClear(GL_COLOR_BUFFER_BIT); // Clears color, ignores non-existing depth buffer
 
 	GLuint timeUniform = glGetUniformLocation(planetShader->getHandle(), "time");
 	int time = glutGet(GLUT_ELAPSED_TIME); // Gets application time in milliseconds
 
-	// Make time 64 second periodic and normalize it to 1, meaning 0 - 1 is 64 seconds
+	// Make time 64 second periodic and normalize it to [0, 1]
 	float timef = (time % 64000) / (float) 64000;
-	glUniform1f(timeUniform, timef);
+	glUniform1f(timeUniform, timef); // Set time uniform
 
 	// Bind our texture to unit 0 and set sampler uniform accordingly
 	const int TEXTURE_UNIT = 0;
@@ -115,7 +117,7 @@ void display() {
 	/*
 		Draws a full screen triangle.
 		No vertex attributes are used. Instead the vertex shader uses gl_VertexID to span the triangle
-		and the fragment shader uses texture coordinates to draw a rond shaded planet.
+		and the fragment shader uses texture coordinates to draw a round shaded planet.
 		*/
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -124,15 +126,16 @@ void display() {
 
 int main(int argc, char *argv[])
 {
+	// Initialize GLUT
 	glutInit(&argc, argv);
-	// request version
-	glutInitContextVersion(3, 0);
+	glutInitContextVersion(2, 1); // Request OpenGL 2.1
 
-	// double buffered, color, no depth, no alpha
+	// Request a double buffered color frame buffer without depth and alpha
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
 	glutInitWindowSize(WINDOW_SIZE, WINDOW_SIZE);
 	glutCreateWindow("Fireplanet");
 
+	// Initialize GLEW
 	glewExperimental = true; // Needed for newer OpenGL versions
 	GLenum error = glewInit();
 	if (error != GLEW_OK)
@@ -141,10 +144,11 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	glutDisplayFunc(display);
-	glutIdleFunc(display); // This forces constant redrawing
+	glutDisplayFunc(display); // Set display callback
+	glutIdleFunc(display); // Forces constant redrawing by using display as adle callback
 	glutReshapeFunc(resize);
 
+	// Initialize everything we need to start the main display loop
 	bool success = init();
 
 	if (!success)
@@ -153,8 +157,10 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
+	// Main GLUT loop. Polls events and draws by calling display()
 	glutMainLoop();
 
+	// Clean up
 	if (planetShader != nullptr)
 		delete planetShader;
 	

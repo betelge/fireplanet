@@ -10,6 +10,8 @@ Shader::Shader(std::string vertexSource, std::string fragmentSource)
 
 Shader::~Shader()
 {
+	// Clean up
+
 	if (handle_)
 		glDeleteProgram(handle_);
 
@@ -22,9 +24,11 @@ Shader::~Shader()
 
 void Shader::initialize()
 {
+	// Generate shader handles
 	vertexShader_ = glCreateShader(GL_VERTEX_SHADER);
 	fragmentShader_ = glCreateShader(GL_FRAGMENT_SHADER);
 
+	// Pass GLSL source to shader objects
 	const char *vertex_c_str = vertexSource_.c_str();
 	const char *fragment_c_str = fragmentSource_.c_str();
 	const int vertexSourceLength = vertexSource_.length();
@@ -32,9 +36,11 @@ void Shader::initialize()
 	glShaderSource(vertexShader_, 1, &vertex_c_str, &vertexSourceLength);
 	glShaderSource(fragmentShader_, 1, &fragment_c_str, &fragmentSourceLength);
 
+	// Compile shader objects
 	glCompileShader(vertexShader_);
 	glCompileShader(fragmentShader_);
 
+	// Check for compilation errors
 	{
 		bool success;
 		success = checkShader(vertexShader_);
@@ -48,14 +54,17 @@ void Shader::initialize()
 			return;
 	}
 
-
+	// Generate a program object handle
 	handle_ = glCreateProgram();
 
+	// Attach shaders to program
 	glAttachShader(handle_, vertexShader_);
 	glAttachShader(handle_, fragmentShader_);
 
+	// Link program
 	glLinkProgram(handle_);
 
+	// Check for program linking errors
 	bool success = checkProgram(handle_);
 
 	issuccessfullyLinked_ = success;
