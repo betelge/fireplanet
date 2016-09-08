@@ -97,15 +97,20 @@ void resize(int width, int height) {
 
 // display callback
 void display() {
+
+	// Bind shader program. The OpenGL driver should optimize away redundant calls.
+	glUseProgram(planetShader->getHandle());
+
 	glClearColor(0, 0, 0, 0); // Black
 	glClear(GL_COLOR_BUFFER_BIT); // Clears color, ignores non-existing depth buffer
 
-	GLuint timeUniform = glGetUniformLocation(planetShader->getHandle(), "time");
-	int time = glutGet(GLUT_ELAPSED_TIME); // Gets application time in milliseconds
-
 	// Make time 64 second periodic and normalize it to [0, 1]
+	int time = glutGet(GLUT_ELAPSED_TIME); // Gets application time in milliseconds
 	float timef = (time % 64000) / (float) 64000;
-	glUniform1f(timeUniform, timef); // Set time uniform
+
+	// Set time uniform
+	GLuint timeUniform = glGetUniformLocation(planetShader->getHandle(), "time");
+	glUniform1f(timeUniform, timef);
 
 	// Bind our texture to unit 0 and set sampler uniform accordingly
 	const int TEXTURE_UNIT = 0;
@@ -145,8 +150,8 @@ int main(int argc, char *argv[])
 	}
 
 	glutDisplayFunc(display); // Set display callback
-	glutIdleFunc(display); // Forces constant redrawing by using display as adle callback
-	glutReshapeFunc(resize);
+	glutIdleFunc(display); // Forces constant redrawing by using display as idle callback
+	glutReshapeFunc(resize); // Disables window resizing
 
 	// Initialize everything we need to start the main display loop
 	bool success = init();
