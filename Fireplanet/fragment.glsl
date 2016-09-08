@@ -3,7 +3,7 @@
 uniform float time; // Periodic time in the range [0, 1] with a period of 64s
 uniform sampler2D texture; // Fire texture
 
-in vec2 coord; // Screen coordinates in the range [-1, 1]
+varying vec2 coord; // Screen coordinates in the range [-1, 1]
 
 float snoise(vec3 v); // Included from seperate GLSL file
 

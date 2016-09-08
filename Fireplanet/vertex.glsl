@@ -1,7 +1,7 @@
 #version 120
 #extension GL_EXT_gpu_shader4 : require
 
-out vec2 coord;
+varying vec2 coord;
 
 void main(void)
 {

@@ -8,7 +8,7 @@
 #include <GL/freeglut.h>
 
 #include "shader.h"
-#include "lodepng.h";
+#include "lodepng.h"
 
 #define VERTEX_SOURCE "vertex.glsl"
 #define FRAGMENT_SOURCE "fragment.glsl"

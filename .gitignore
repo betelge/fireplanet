@@ -8,3 +8,4 @@ freeglut
 glew-2.0.0
 *.sdf
 *.opensdf
+*.out
