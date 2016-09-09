@@ -22,7 +22,9 @@ vec2 turbulance(vec3 coords)
 	turb += 1.5 * vec2(snoise(4. * vec3(latlon, 1.5*time)), snoise(4. * vec3(latlon + vec2(.5, 0.), 1.5*time)));
 	turb += 2. * vec2(snoise(8. * vec3(latlon, 2.*time)), snoise(8. * vec3(latlon + vec2(.5, 0.), 2.*time)));
 	turb += 2. * vec2(snoise(9. * vec3(latlon, 2.*time)), snoise(9. * vec3(latlon + vec2(.5, 0.), 2.*time)));
-	turb /= 12.;
+	turb += 1. * vec2(snoise(19. * vec3(latlon, 2.*time)), snoise(19. * vec3(latlon + vec2(.5, 0.), 2.*time)));
+	turb += .7 * vec2(snoise(29. * vec3(latlon, 2.*time)), snoise(29. * vec3(latlon + vec2(.5, 0.), 2.*time)));
+	turb /= 15.;
 
 	return turb;
 }
@@ -42,7 +44,7 @@ void main(void)
 
 	// Calculates latitude and longitude on planet. Normalized to [0 - 1].
 	vec2 latlon = vec2(dot(normalize(planet3d.xz), vec2(1., 0.)), dot(planet3d.yz, vec2(1., 0.)));
-	latlon = latlon * .5 + .5;
+	latlon = acos(latlon) * .5 - .25;
 
 	// Apply turbulance to the planet texture coordinates
 	latlon += turbulance(vec3(latlon, time));
